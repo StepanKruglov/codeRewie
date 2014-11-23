@@ -1,146 +1,179 @@
-﻿#include <iostream>
+#include <iostream>
 #include <vector>
-/*= Ошибка компиляции: такой файл не существует
-#include "lib2dz.h"
-*/
+#include <iterator>
+#include <stdarg.h> 
 #include "footballer_dz2.h" 
 
-/*=
- * 1. Если функция используется только в данном .cpp файле, то желательно
- * в начале дописать ключевое слово static (это автоматически подразумевается
- * компилятором, но явное указание улучшает читаемость кода)
- * 2. Если функция является общедоступной, то ее заголовок должен быть
- * в .h, а не .cpp файле
- */
-void read(std::vector< int > *sorted_array, int number_of_elements);
-
-using std::cin;
-using std::cout;
-
-/*= Отступы !!!
- * Общепринятый стандарт: 1 отступ = 4 пробела,
- * должны быть внутри каждого блока {}
- */
 int main()
 {
-    /*=
-     * 1. Объявление каждой переменной должно быть отдельным statement'ом
-     * с новой строки, поскольку в будущем возможны изменения типов, а
-     * системы контроля версий ориентированы на построчные изменения текстов
-     * 2. ВСЕ переменные нужно инициализировать начальными значениями
-     * 3. Число элементов и индекс -- это не int, а беззнаковый тип size_t.
-     * См. reference класса std::vector
-     */
-int number_of_elements = 0, index = 0;
-int left_answer, right_answer, right = 0, right_new, first, second;
-double sum = 0, full_sum = 0, answer = 0, par = 0;
+    size_t number_of_elements = 0;
+    size_t left_answer = 0; 
+    size_t right_answer = 0; 
+    long long answer = 0; 
+  
 
-cin >> number_of_elements;
+    std::cin >> number_of_elements;
 
-    /*=
-     * Пробелы внутри <> не ставятся (за исключением вложенных треугольных скобок).
-     * См. code style guide
-     */
-std::vector< int > array_with_indexes(number_of_elements);
-std::vector< int > sorted_array(number_of_elements);;
-    /*=
-     * Имена большими буквами приняты для констант или макросов.
-     * См. code style guide
-     */
-std::vector< double > SUM(number_of_elements);
+    std::vector<int> array_with_indexes(number_of_elements);
+    std::vector<int> sorted_array(number_of_elements + 1);
 
-/*=
- * 1. Составные типы данных в C++ передаются по ссылке, а не через указатель,
- * единственное исключение -- нулевой указатель.
- * Аналогичное замечание -- при вызове quicksort_indexes.
- * 2. Число элементов передавать не нужно, оно однозначно определяется
- * через vector::size()
- * 3. Более логично строку cin >> number_of_elements внести внутрь функции read
- */
-read(&sorted_array, number_of_elements);
 
-for (index = 0; index < number_of_elements; ++index) {
-  array_with_indexes[index] = index; 
-}
+    read(sorted_array);
 
-quicksort_indexes(&sorted_array, 0, number_of_elements - 1, &array_with_indexes);
-
-/*= Все манипуляции с std::cout должны выполняться непосредственно перед выводом */
-std::cout.precision(15);
-
-/*=
- * 1. Программа на этой строке всегда падает независимо от входных данных. Подумай, почему.
- * 2. Падение не очевидно для отладчика, поскольку используются квадратные скобки всесто
- * метода vector::at(size_t index)
- * 3. Что будет, если 0==sorted_array.size() ?
- */
-sorted_array[number_of_elements] = sorted_array[number_of_elements - 1];
-
-/*=
- * 1. Весь код ниже, до вывода на экран, должен быть вынесен в отдельную функцию
- * с понятным именем, которое описывает, что этот код делает
- * 2. Используется очень опасный прием: внутри цикла for меняются значения переменных, объявленных
- * вне этого цикла. C++, в отличии от Си, позволяет объявлять переменные в любом месте
- */
-for (index = number_of_elements - 1, right = number_of_elements - 1; 
-                                                         index >= 0; --index) {
-
-full_sum += sorted_array[index];
-SUM[index] = full_sum;
-
-/*= Присваивания -- отдельными инструкциями, разделенными ;, а не запятой ! */
-first = sorted_array[index],
-        /*= Что будет, если (index + 1) == sorted_array().size() ? */
-second = sorted_array[index + 1],
-
-/*= Зачем здесь double??? В данной задаче используется исключительно целочисленная арифметика */
-par = static_cast<double>(first) + static_cast<double>(second);  
-  if (par < sorted_array[right]) {
-    if (answer < sum) {
-      answer = sum;
-      left_answer = index + 1;
-      right_answer = right;  
-    } 
-
-    right_new = binary_search(par, sorted_array, index, right) - 1;
-
-    if (answer >= sorted_array[right_new] * (right_new)) break;
-
-    sum -= SUM[right_new + 1] - SUM[right] + sorted_array[right];
-
-    right = right_new;
-  }
-
-sum = sum + static_cast<double>(sorted_array[index]);
-}
-
-    if (answer < sum) {
-      answer = sum;
-      left_answer = index + 1;
-      right_answer = right;
+    for (int index = 0; index < number_of_elements; ++index) {
+        array_with_indexes.at(index) = index + 1; 
     }
 
-/*= Лучше выводить std::endl вместо платформо-зависимой ESC-последовательности "\n" */
-cout << answer << "\n";
-quicksort(&array_with_indexes, left_answer, right_answer);
+    quicksort_indexes(sorted_array, 0, number_of_elements - 1, array_with_indexes);
 
-/*= Три строки ниже можно заменить всего одной строкой, используя стандартную библиотеку STL */
-for (index = left_answer; index <= right_answer; ++index) {
-      cout << array_with_indexes[index] + 1 << " "; 
-    }
+    best_players_combination_search(sorted_array, answer, left_answer, right_answer);
+
+
+    std::cout.precision(15);
+    std::cout << answer << std::endl;
+    quicksort_indexes(array_with_indexes, left_answer, right_answer);
+
+    std::copy(array_with_indexes.begin() + left_answer, array_with_indexes.begin() + right_answer + 1,
+                                                                 std::ostream_iterator<int>(std::cout, " "));
 
 return 0;
 } 
+    void best_players_combination_search(std::vector<int> &sorted_array, long long &answer,
+                                                         size_t &left_answer, size_t &right_answer)
+    {
+        size_t first = 0; 
+        size_t second = 0;
+        size_t number_of_elements = sorted_array.size() - 1;
+        size_t right_new = number_of_elements;
+        long long sum = 0; 
+        long long full_sum = 0;
+        long long par = 0;
+        std::vector<long long> continuous_sum(number_of_elements);
 
-  void read(std::vector< int > *sorted_array, int number_of_elements)
-  { 
+        sorted_array.at(number_of_elements) = sorted_array.at(number_of_elements - 1);
+
+        for (size_t index = number_of_elements - 1, right = number_of_elements - 1; 
+                                                                 index >= 0; --index) {
+
+            full_sum += sorted_array.at(index);
+            continuous_sum.at(index) = full_sum;
+
+
+            first = sorted_array.at(index);
+            second = sorted_array.at(index + 1);
+
+            par = static_cast<long long>(first) + static_cast<long long>(second);  
+            if (par < sorted_array.at(right)) {
+                if (answer < sum) {
+                    answer = sum;
+                    left_answer = index + 1;
+                    right_answer = right;  
+                } 
+
+                right_new = binary_search(par, sorted_array, index, right) - 1;
+
+                if (answer >= sorted_array.at(right_new) * (right_new)) break;
+
+                sum -= continuous_sum.at(right_new + 1) - continuous_sum.at(right) + sorted_array.at(right);
+
+                right = right_new;
+            }
+
+            sum = sum + static_cast<long long>(sorted_array.at(index));
+        }
+
+        if (answer < sum) {
+            answer = sum;
+            left_answer = 0;
+            right_answer = right_new;
+        }
+    }
+
+
+    void read(std::vector< int > &sorted_array)
+    { 
 /*= Три строки ниже можно заменить всего одной строкой, используя стандартную библиотеку STL
  * (в этом случае функция read тогда вообще не нужна)
 */
-    for (int index = 0; index < number_of_elements; ++index) {
-      std::cin >> (*sorted_array)[index];
+// не придумал, как сделать в одну строку. Нашел, такой вариант, но не нашел
+// как в одну строчку оборвать ввод на переводе строки.  
+/*    std::copy( std::istream_iterator<int>(cin), std::istream_iterator<int>(),
+                                               std::back_inserter( sorted_array ) );
+*/
+        for (int index = 0; index < sorted_array.size(); ++index) {
+            std::cin >> sorted_array.at(index);
+        }
     }
-  }
+
+    int middle(int one, int two, int three) 
+    {
+        int mx;
+        int mn;
+
+        mx = std::max(one,two);
+        mx = std::max(mx,three);
+        mn = std::min(one,two);
+        mn = std::min(mn,three);
+
+        return one + two + three - mn - mx;
+    }
 
 
+    void quicksort_indexes(std::vector<int> &sorted_array, int first,
+                                    int last, std::vector<int> &array_with_indexes)
+    {
+      /*=
+       * 2. Индекс, используемый в std::vector -- это size_t, а не int || алгоритм подразумевает, что индекс может быть отрицательным, нужен int 
+       */
+        int indexA = first;
+        int indexB = last;
+        size_t x = 0;
+        size_t val = 0;
+        x = middle(sorted_array.at(first), sorted_array.at((first + last) / 2),
+                                                            sorted_array.at(last));
+        do {
 
+            while (indexA < sorted_array.size() && sorted_array.at(indexA) < x) {
+                indexA++;
+            }
+
+            while (indexB >= 0 && sorted_array.at(indexB) > x) {
+                indexB--;
+            }
+  
+            if (indexA <= indexB) {
+                if (sorted_array.at(indexA) > sorted_array.at(indexB)) {
+                    val = sorted_array.at(indexA);
+                    sorted_array.at(indexA) = sorted_array.at(indexB);
+                    sorted_array.at(indexB) = val;
+
+                    if (!array_with_indexes.empty()) { 
+                        val = array_with_indexes.at(indexB);
+                        array_with_indexes.at(indexB) = array_with_indexes.at(indexA);
+                        array_with_indexes.at(indexA) = val;
+                    }     
+                }
+                indexA++;
+                indexB--;
+            }
+        } while (indexA <= indexB);
+ 
+        if (indexA < last)
+            quicksort_indexes(sorted_array, indexA, last, array_with_indexes);
+        if (first < indexB)
+            quicksort_indexes(sorted_array, first, indexB, array_with_indexes);
+    }
+
+    int binary_search(long long search_value, const std::vector< int > &array, int from, int to)
+    {
+        int extremum = 0;
+        for (extremum = (to+from)/2; from < to; extremum = (to+from)/2) {
+            if (array.at(extremum) >= search_value) {
+                to = extremum;
+            } else {
+                from = extremum + 1;
+              }
+        }
+
+        return extremum;
+    }
