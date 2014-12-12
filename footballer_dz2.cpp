@@ -52,6 +52,12 @@ return 0;
 
         sorted_array.at(number_of_elements) = sorted_array.at(number_of_elements - 1);
 
+        /*==
+        Этот цикл будет выполняться бесконечно!
+        size_t -- беззнаковый тип, поэтому условие index >= 0 будет всегда истинно
+        В такой ситуации нужно переписать цикл так, чтобы условие на index формировалось в виде index > 0
+        (т.е. реальный индекс -- это index-1 )
+        ==*/
         for (size_t index = number_of_elements - 1, right = number_of_elements - 1; 
                                                                  index >= 0; --index) {
 
