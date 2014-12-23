@@ -52,31 +52,25 @@ return 0;
 
         sorted_array.at(number_of_elements) = sorted_array.at(number_of_elements - 1);
 
-        /*==
-        Этот цикл будет выполняться бесконечно!
-        size_t -- беззнаковый тип, поэтому условие index >= 0 будет всегда истинно
-        В такой ситуации нужно переписать цикл так, чтобы условие на index формировалось в виде index > 0
-        (т.е. реальный индекс -- это index-1 )
-        ==*/
-        for (size_t index = number_of_elements - 1, right = number_of_elements - 1; 
-                                                                 index >= 0; --index) {
+        for (size_t index = number_of_elements, right = number_of_elements; 
+                                                                 index > 0; --index) {
 
-            full_sum += sorted_array.at(index);
-            continuous_sum.at(index) = full_sum;
+            full_sum += sorted_array.at(index - 1);
+            continuous_sum.at(index - 1) = full_sum;
 
 
-            first = sorted_array.at(index);
-            second = sorted_array.at(index + 1);
+            first = sorted_array.at(index - 1);
+            second = sorted_array.at(index);
 
             par = static_cast<long long>(first) + static_cast<long long>(second);  
             if (par < sorted_array.at(right)) {
                 if (answer < sum) {
                     answer = sum;
-                    left_answer = index + 1;
+                    left_answer = index;
                     right_answer = right;  
                 } 
 
-                right_new = binary_search(par, sorted_array, index, right) - 1;
+                right_new = binary_search(par, sorted_array, index - 1 , right) - 1;
 
                 if (answer >= sorted_array.at(right_new) * (right_new)) break;
 
@@ -85,7 +79,7 @@ return 0;
                 right = right_new;
             }
 
-            sum = sum + static_cast<long long>(sorted_array.at(index));
+            sum = sum + static_cast<long long>(sorted_array.at(index - 1));
         }
 
         if (answer < sum) {
