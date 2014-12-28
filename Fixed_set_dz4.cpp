@@ -16,6 +16,12 @@ using std::endl;
 
 struct HashFunction {
     static std::default_random_engine m_generator;
+
+    /*= 
+    1. Тип a -- uint64_t, но ему присваивается значение не более чем primeNum-1 (uint32_t) 
+    2. Тип m_size -- uint32_t, но тип размера в стандартных векторах совсем не очевидно, что 32-битный.
+    Лучше всегда использовать для size стандартный тип size_t (который может быть как 32, так и 64 битным)
+    =*/
     uint64_t a;
     uint32_t b;
     uint32_t m_prime;
@@ -42,7 +48,9 @@ std::default_random_engine HashFunction::m_generator;
 class HashTable {
     vector<int*> m_hashTable;
     HashFunction m_hashFunction;
-    static const uint32_t PRIME = 2147483647;
+
+    /*= Константы такого вида более естественно задавать в шестнадцатеричном виде =*/
+    static const uint32_t PRIME = 2147483647; 
 
 public:
     explicit HashTable(const vector<int> &numbers) {
@@ -53,10 +61,16 @@ public:
         if (size != 1 && size < 100) {
             size = 100; 
         }
+
+	/*= Если уж пользуешься стандартом C++11, то используй nullptr вместо макроса NULL =*/
         m_hashTable = vector<int*>(size, NULL);
+
+	/*= Полезно завести привычку всегда инициализировать переменную при объявлении некоторым
+	  начальным значением =*/
         bool hasCollision;
         do {
             for (auto index = m_hashTable.begin(); index != m_hashTable.end(); ++index) {
+                /*= Баг! Здесь обязательно нужна проверка на nullptr перед выполнением delete =*/
                 delete *index;
                 *index = NULL;
             }
@@ -68,6 +82,8 @@ public:
                     hasCollision = true;
                     break;
                 } else {
+		    /*= Для этого выделения памяти (по факту -- последнего в цикле) нет очистки. 
+                        После выполнения данной программы наблюдаем утечку в размере numbersSize*4 байт =*/
                     m_hashTable[hashValue] = new int;
                     *(m_hashTable[hashValue]) = *index;
                 }
@@ -97,9 +113,14 @@ std::ostream &operator<< (std::ostream &out, const HashTable &table)
 class FixedSet {
     vector<HashTable> m_hashTables;
     HashFunction m_hashFunction;
+
+    /*= Эта константа уже была ранее объявлена в классе HashTable. Если в HashTable объявить ее в public,
+      то здесь она становится не нужна. Еще вариант -- объявить ее не на уровне классов, а на уровне модуля =*/
     static const uint32_t PRIME = 2147483647;
 
 public:
+    /*= В классе HashTable имена методов начинаются с малелькой буквы, а в этом -- с большой.
+      Стиль должен быть единообразным =*/
     void Initialize(const vector<int> &numbers) {
         uint64_t size = numbers.size();
         if (size != 1 && size < 100) {
@@ -108,7 +129,14 @@ public:
         vector<vector<int> > firstLevelHash(size);
         uint64_t sum = 0;
         do {
-            for (auto index = firstLevelHash.begin(); index != firstLevelHash.end(); ++index) {
+	    /*= Во всех циклах ниже напрашивается конструкция C++11 вида for (item : container),
+	      а не for (init; check; modify) 
+	      Более того, в Яндексе принято по возможности использовать вместо циклов стандартные
+	      алгоритмы STL.
+	      В данном случае, первый цикл -- это std::for_each, второй -- std::transform, третий -- std::accumulate.
+	      Hint: если используешь C++11, то в качестве аргументов-операций этих стандартных функций
+	      удобно пользоваться lambda-выражениями (см. https://en.wikipedia.org/wiki/C%2B%2B11#Lambda_functions_and_expressions ) =*/
+	    for (auto index = firstLevelHash.begin(); index != firstLevelHash.end(); ++index) {
                 index->clear();
             }
             m_hashFunction = HashFunction(PRIME, firstLevelHash.size());
